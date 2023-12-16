@@ -1,0 +1,22 @@
+name: brick_breaker
+description: "a flutter flame example."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.2.3 <4.0.0'
+
+dependencies:
+  flame: ^1.12.0
+  flutter:
+    sdk: flutter
+  flutter_animate: ^4.3.0
+  google_fonts: ^6.1.0
+
+dev_dependencies:
+  flutter_lints: ^2.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
