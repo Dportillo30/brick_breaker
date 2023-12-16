@@ -8,7 +8,7 @@ import 'package:flame/game.dart';
 import 'components/components.dart';
 import 'config.dart';
 
-class BrickBraker extends FlameGame{
+class BrickBraker extends FlameGame with HasCollisionDetection{
   BrickBraker()
   : super(
     camera: CameraComponent.withFixedResolution(
