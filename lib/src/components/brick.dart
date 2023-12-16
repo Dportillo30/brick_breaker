@@ -8,7 +8,7 @@ import 'ball.dart';
 import 'bat.dart';
 
 class Brick extends RectangleComponent
-    with CollisionCallbacks, HasGameReference<BrickBraker> {
+    with CollisionCallbacks, HasGameReference<BrickBreaker> {
   Brick(Vector2 position, Color color)
       : super(
           position: position,
@@ -27,6 +27,7 @@ class Brick extends RectangleComponent
     removeFromParent();
 
     if (game.world.children.query<Brick>().length == 1) {
+      game.playState = PlayState.won;                           
       game.world.removeAll(game.world.children.query<Ball>());
       game.world.removeAll(game.world.children.query<Bat>());
     }

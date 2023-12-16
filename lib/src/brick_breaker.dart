@@ -1,30 +1,46 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flame/game.dart';
 
 import 'components/components.dart';
 import 'config.dart';
 
-class BrickBraker extends FlameGame 
-with HasCollisionDetection, KeyboardEvents{
-  BrickBraker()
-  : super(
-    camera: CameraComponent.withFixedResolution(
-      width: gameWidht,
-      height: gameHeight,
-      ),
-  );
+enum PlayState { welcome, playing, gameOver, won }              
+
+class BrickBreaker extends FlameGame
+    with HasCollisionDetection, KeyboardEvents, TapDetector {   
+  BrickBreaker()
+      : super(
+          camera: CameraComponent.withFixedResolution(
+            width: gameWidht,
+            height: gameHeight,
+          ),
+        );
 
   final rand = math.Random();
   double get width => size.x;
   double get height => size.y;
 
+  late PlayState _playState;                                   
+  PlayState get playState => _playState;
+  set playState(PlayState playState) {
+    _playState = playState;
+    switch (playState) {
+      case PlayState.welcome:
+      case PlayState.gameOver:
+      case PlayState.won:
+        overlays.add(playState.name);
+      case PlayState.playing:
+        overlays.remove(PlayState.welcome.name);
+        overlays.remove(PlayState.gameOver.name);
+        overlays.remove(PlayState.won.name);
+    }
+  }                                                             
   @override
   FutureOr<void> onLoad() async {
     super.onLoad();
@@ -32,6 +48,18 @@ with HasCollisionDetection, KeyboardEvents{
     camera.viewfinder.anchor = Anchor.topLeft;
 
     world.add(PlayArea());
+
+    playState = PlayState.welcome;                              
+  }
+
+  void startGame() {
+    if (playState == PlayState.playing) return;
+
+    world.removeAll(world.children.query<Ball>());
+    world.removeAll(world.children.query<Bat>());
+    world.removeAll(world.children.query<Brick>());
+
+    playState = PlayState.playing;                              
 
     world.add(Ball(
         difficultyModifier: difficultyModifier,
@@ -41,12 +69,12 @@ with HasCollisionDetection, KeyboardEvents{
             .normalized()
           ..scale(height / 4)));
 
-      world.add(Bat(                                             
+    world.add(Bat(
         size: Vector2(batWidth, batHeight),
         cornerRadius: const Radius.circular(ballRadius / 2),
-        position: Vector2(width / 2, height * 0.95)));    
+        position: Vector2(width / 2, height * 0.95)));
 
-await world.addAll([                                        // Add from here...
+    world.addAll([                            
       for (var i = 0; i < brickColors.length; i++)
         for (var j = 1; j <= 5; j++)
           Brick(
@@ -56,10 +84,14 @@ await world.addAll([                                        // Add from here...
             ),
             brickColors[i],
           ),
-    ]);                                                         // To here.
+    ]);
+  }                                                             
 
-    
-  }
+  @override                                                     
+  void onTap() {
+    super.onTap();
+    startGame();
+  }                                                            
 
   @override
   KeyEventResult onKeyEvent(
@@ -70,7 +102,13 @@ await world.addAll([                                        // Add from here...
         world.children.query<Bat>().first.moveBy(-batStep);
       case LogicalKeyboardKey.arrowRight:
         world.children.query<Bat>().first.moveBy(batStep);
+      case LogicalKeyboardKey.space:                            
+      case LogicalKeyboardKey.enter:
+        startGame();                                            
     }
     return KeyEventResult.handled;
   }
+
+  @override
+  Color backgroundColor() => const Color(0xfff2e8cf);          
 }
